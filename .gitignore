@@ -1,0 +1,8 @@
+.ipynb_checkpoints/
+.vscode/
+__pycache__/
+cls2/__pycache__/
+legacy_planets.txt
+occur_chains.csv
+recoveries_all_earth.csv
+recoveries_planets_earth.csv
