@@ -15,3 +15,9 @@ def save_table(table, key, outname):
         writer.writerow(['name'])
         for val in np.unique(table[key]):
             writer.writerow([val])
+
+def log_edges2centers(edges):
+    
+    bin_centers = 10**(np.log10(edges[:-1]) + np.diff(np.log10(edges)).mean()/2)
+
+    return bin_centers

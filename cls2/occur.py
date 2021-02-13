@@ -513,10 +513,9 @@ class Insol(object):
         # TO-DO: Replace single-param planets with paths to posteriors.
         self.pop          = pop # Replace pairs of m & a with chains
         self.completeness = completeness # Completeness grid, defined as class object below.
-        self.completeness.completeness_grid([0.05, 2000], [3, 7000])
+        self.completeness.completeness_grid([1e-5, 2000], [10, 7000])
         # Fill in completeness nans.
         self.completeness.grid[2][np.isnan(self.completeness.grid[2])] = 1. #0.99
-        
         
         self.res = res # Resolution for logarithmic completeness integration.
         self.bins = bins # Logarithmic bins in msini/axis space.
@@ -570,6 +569,7 @@ class Insol(object):
             planets = self.pop_med.query('insol >= @a1 and insol < @a2 and \
                                          msini >= @M1 and msini < @M2')
             nplanets = len(planets)
+            print(a1, a2, M1, M2, nplanets)
             ml  = nplanets/self.Qints[n]
             uml = ml/np.sqrt(nplanets)
             if not np.isfinite(ml):
@@ -686,7 +686,7 @@ class Insol(object):
                                  for i in np.arange(nwalkers)]), axis=1)
 
         if parallel:
-            with Pool(8) as pool:
+            with Pool(4) as pool:
                 if gp:
                     self.sampler = emcee.EnsembleSampler(nwalkers, ndim, self.gppost, pool=pool)
                 else:
@@ -698,7 +698,7 @@ class Insol(object):
                 self.sampler = emcee.EnsembleSampler(nwalkers, ndim, self.gppost)
             else:
                 self.sampler = emcee.EnsembleSampler(nwalkers, ndim, self.lnpost)
-            self.sampler.run_mcmc(pos, 300, progress=True)           
+            self.sampler.run_mcmc(pos, 1000, progress=True)           
             self.chains = self.sampler.chain[:, 100:, :].reshape((-1, ndim))    
             
         if save:
