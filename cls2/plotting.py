@@ -112,8 +112,6 @@ def binned_hist(planets, allbins, hierarchical_one, outname='plots/hist_11x1_101
     a_841 = np.array(a_841)/binwidth
     a_682 = np.array(a_682)/binwidth
 
-    #pdb.set_trace()
-
     fig, ax = plt.subplots()
     ax.set_xscale('log')
     ax.set_xticks((0.1, 0.3, 1, 3, 10, 30))
@@ -122,36 +120,47 @@ def binned_hist(planets, allbins, hierarchical_one, outname='plots/hist_11x1_101
 
     ax.set_xlabel(r'Semi-major axis (au)')
     #ax.set_ylabel(r'Planets per 100 stars (30 - 6000 $\mathrm{M_{\oplus}}$)')
-    ax.set_ylabel(r'$N_P$ / 100 stars / $\Delta$ln($a$) (30 - 6000 $\mathrm{M_{\oplus}}$)')
+    ax.set_ylabel('$N_P$ / 100 stars / $\Delta$ln($a$)\n(30 - 6000 $\mathrm{M_{\oplus}}$)')
 
     ax.set_xlim([np.exp(hierarchical_one.lna_edges[0]), np.exp(hierarchical_one.lna_edges[-1])])
     #ax.set_ylim([0, 10])
     ax.set_ylim([0, 15])
     lnaw = hierarchical_one.lna_edges[1] - hierarchical_one.lna_edges[0]
 
-    # Plot just-counting, no-completeness histogram.
-    ax.step(np.insert(np.exp(hierarchical_one.lna_edges[:-1] + lnaw), 0, np.exp(hierarchical_one.lna_edges[0])), 
-            np.insert(simple_counts, 0, simple_counts[0]), lw=2, c='blue', linestyle=':', label='Count')
-
     # Plot mode & 68.2% CI.
     ax.scatter(np.exp(hierarchical_one.lna_edges[:-1] + 0.5*lnaw), a_modes,
             color='black', s=30, label='_nolegend_')#label='Occurrence mode & CI')
-    ax.vlines(np.exp(hierarchical_one.lna_edges[:-2] + 0.5*lnaw), a_159[:-1],
-            a_841[:-1], alpha=0.5, color='black', lw=3, label='68.2%')
+    conf = ax.vlines(np.exp(hierarchical_one.lna_edges[:-2] + 0.5*lnaw), a_159[:-1],
+              a_841[:-1], alpha=0.5, color='black', lw=3, label='68.2%')
     # Show CI from 0 to 68.2 for the last bin.
     ax.vlines(np.exp(hierarchical_one.lna_edges[-2] + 0.5*lnaw), 0,
             a_682[-1], alpha=0.5, color='black', lw=3, label='_nolegend_')
 
     # Plot occurrence histogram.
-    ax.step(np.insert(np.exp(hierarchical_one.lna_edges[:-1] + lnaw), 0, np.exp(hierarchical_one.lna_edges[0])), 
+    occ, = ax.step(np.insert(np.exp(hierarchical_one.lna_edges[:-1] + lnaw), 0, np.exp(hierarchical_one.lna_edges[0])), 
             np.insert(a_modes, 0, a_modes[0]), color='black', lw=2, label='Occurrence')
 
     for i in np.arange(1000):
-        ax.step(np.insert(np.exp(hierarchical_one.lna_edges[:-1] + lnaw), 0, np.exp(hierarchical_one.lna_edges[0])), 
-                np.insert(a_chains[:, np.random.randint(0, 10000)], 0, a_medians[0]), 
-                color='black', lw=1, alpha=0.01, label='_nolegend_')
-    
-    ax.legend(loc=2) 
+        ax.hlines(a_chains[:, np.random.randint(0, 10000)],
+                  np.insert(np.exp(hierarchical_one.lna_edges[:-2] + lnaw), 0, 0.01),
+                  np.exp(hierarchical_one.lna_edges[:-1] + lnaw),
+                  color='black', lw=1, alpha=0.01, label='_nolegend_')
+
+    # Plot just-counting, no-completeness histogram.
+    count, = ax.step(np.insert(np.exp(hierarchical_one.lna_edges[:-1] + lnaw), 0, np.exp(hierarchical_one.lna_edges[0])), 
+            np.insert(simple_counts, 0, simple_counts[0]), lw=2, c='blue', linestyle=':', label='Count')
+
+    ax.legend(loc=2)
+
+    ax.annotate(r'$\Delta\ln{(a)} = %.2f$' % lnaw, xy=(0.05, 0.65), xycoords='axes fraction', fontsize=12)
+
+    ax2 = ax.twinx()
+    Np = lambda x: x*lnaw
+    ax1lim = ax.get_ylim()
+    ax2.set_ylim([Np(ax1lim[0]), Np(ax1lim[1])])
+    ax2.set_ylabel('$N_P$ / 100 stars')
+    ax2.plot([], [])
+
 
     fig.savefig(outname, dpi=1000, bbox_inches='tight')
 
@@ -174,7 +183,6 @@ def last_bin(hierarchical_one, chains_file, outname='plots/last_bin_and_prior.pn
 
     ax.legend()
     fig.savefig(outname, dpi=1000, bbox_inches='tight')
-
 
 def fit_overlay(planets, hierarchical_one, broken, allbins, chains_file='occur_chains.csv', 
                 outname='plots/hist_11x2_1026_fancy_mode.pdf', show_others=False):
@@ -226,7 +234,7 @@ def fit_overlay(planets, hierarchical_one, broken, allbins, chains_file='occur_c
 
     ax.set_xlabel(r'Semi-major axis (au)')
     #ax.set_ylabel(r'Planets per 100 stars (30 - 6000 $\mathrm{M_{\oplus}}$)')
-    ax.set_ylabel(r'$N_P$ / 100 stars / $\Delta$ln($a$) (30 - 6000 $\mathrm{M_{\oplus}}$)')
+    ax.set_ylabel('$N_P$ / 100 stars / $\Delta$ln($a$)\n(30 - 6000 $\mathrm{M_{\oplus}}$)')
 
     #ax.set_xlim([np.exp(hierarchical_one.lna_edges[0]), np.exp(hierarchical_one.lna_edges[-1])])
     ax.set_xlim([0.1, np.exp(hierarchical_one.lna_edges[-1])])
@@ -259,8 +267,8 @@ def fit_overlay(planets, hierarchical_one, broken, allbins, chains_file='occur_c
         # ax.step(np.insert(np.exp(hierarchical_one.lna_edges[:-1] + lnaw), 0, np.exp(hierarchical_one.lna_edges[0])), 
         #     np.insert(a_chains[:, np.random.randint(0, 10000)], 0, a_medians[0]), 
         #     color='black', lw=1, alpha=0.01, label='_nolegend_')
-        ax.plot(axes, (100/719)*occbroken(axes, broken.chains[np.random.randint(0, 10000), :]), 
-            alpha=0.04, color='green', label='_nolegend_')
+        ax.plot(axes, (100/719)*occbroken(axes, broken.chains[np.random.randint(0, 1000), :]), 
+            alpha=0.5, lw=0.4, color='0.7', label='_nolegend_', zorder=-99)
     
     ax.plot(axes, (100/719)*occbroken(axes, np.median(broken.chains, axis=0)), 
             color='black', lw=2, ls='--', label='Broken power law')
@@ -277,10 +285,11 @@ def fit_overlay(planets, hierarchical_one, broken, allbins, chains_file='occur_c
         fd = pd.read_csv('legacy_tables/fernandes_period.txt')
         fd['axis'] = semi_major_axis(fd['period'].values, 1.0)
 
-        plt.plot(axes, predict, lw=2, linestyle='dashed', label='Cumming et al. (2008)', zorder=11)
+        plt.plot(axes[axes < 3], predict[axes < 3], lw=3, linestyle='dashed', label='Cumming et al. (2008)', zorder=11, color='steelblue')
+        plt.plot(axes[axes >= 3], predict[axes >= 3], lw=1.5, linestyle='dotted', label=None, zorder=12, color='steelblue')
         plt.errorbar(fd['axis'], fd['rate']*100* bin_areas, yerr=fd['rate_err']*100, elinewidth=0.5,
                     fmt='o-', linestyle='dashed', lw=2, ms=8, zorder=10, mfc='none', mew=2,
-                    label="Fernandes et al. (2019)")
+                    label="Fernandes et al. (2019)", color='tab:orange')
 
         # Read in Wittenmyer 2020 data
         wn = pd.read_csv('legacy_tables/whttenmyer_20.csv')
@@ -294,9 +303,9 @@ def fit_overlay(planets, hierarchical_one, broken, allbins, chains_file='occur_c
         
         plt.legend()
 
-
-
     ax.legend(loc=2) 
+
+    ax.annotate(r'$\Delta\ln{(a)} = %.2f$' % lnaw, xy=(0.05, 0.62), xycoords='axes fraction', fontsize=12)
 
     fig.savefig(outname, dpi=1000, bbox_inches='tight')
 
@@ -326,6 +335,12 @@ def survey_summary(planets, outname='plots/all_contours.pdf'):
 
     CS = ax.contourf(completey_all.grid[0], completey_all.grid[1],
                      completey_all.grid[2], 10, cmap=plt.cm.gray)
+    CS2 = ax.contour(completey_all.grid[0], completey_all.grid[1],
+                     completey_all.grid[2], [0.01, 0.03], colors='white')
+
+    fmt_func = lambda x,pos: "{:.2f}".format(x)
+    fmt = matplotlib.ticker.FuncFormatter(fmt_func)
+    ax.clabel(CS2, inline=1, fontsize=10, fmt=fmt)                 
 
     matplotlib.rcParams.update({'font.size': 18})
     # ax.set_title('All Star Contours')
@@ -397,37 +412,51 @@ def insol_hist(planets, allbins, hierarchical_one,
     ax.get_xaxis().set_major_formatter(matplotlib.ticker.FormatStrFormatter('%s'))
     ax.get_xaxis().set_minor_formatter(matplotlib.ticker.NullFormatter())
 
-    ax.set_xlabel(r'Stellar light intensity realtive to Earth')
+    ax.set_xlabel(r'Stellar light intensity relative to Earth')
     #ax.set_ylabel(r'Planets per 100 stars (30 - 6000 $\mathrm{M_{\oplus}}$)')
-    ax.set_ylabel(r'$N_P$ / 100 stars / $\Delta$ln($S$) (30 - 6000 $\mathrm{M_{\oplus}}$)')
+    ax.set_ylabel('$N_P$ / 100 stars / $\Delta$ln($S$)\n(30 - 6000 $\mathrm{M_{\oplus}}$)')
 
     ax.set_xlim([np.exp(hierarchical_one.lna_edges[-1]), np.exp(hierarchical_one.lna_edges[0])])
     ax.set_ylim([0, 7])
     lnaw = hierarchical_one.lna_edges[1] - hierarchical_one.lna_edges[0]
 
-    # Plot just-counting, no-completeness histogram.
-    ax.step(np.insert(np.exp(hierarchical_one.lna_edges[:-1] + lnaw), 0, np.exp(hierarchical_one.lna_edges[0])), 
-            np.insert(simple_counts, 0, simple_counts[0]), lw=2, c='blue', linestyle=':', label='Count')
-
     # Plot mode & 68.2% CI.
     ax.scatter(np.exp(hierarchical_one.lna_edges[:-1] + 0.5*lnaw), a_modes,
             color='black', s=30, label='_nolegend_')#label='Occurrence mode & CI')
-    ax.vlines(np.exp(hierarchical_one.lna_edges[:-1] + 0.5*lnaw), a_159,
-            a_841, alpha=0.5, color='black', lw=3, label='68.2%')
+    conf = ax.vlines(np.exp(hierarchical_one.lna_edges[:-1] + 0.5*lnaw), a_159,
+              a_841, alpha=0.5, color='black', lw=3, label='68.2%')
 #     # Show CI from 0 to 68.2 for the last bin.
 #     ax.vlines(np.exp(hierarchical_one.lna_edges[-2] + 0.5*lnaw), 0,
 #             a_682[-1], alpha=0.5, color='black', lw=3, label='_nolegend_')
 
     # Plot occurrence histogram.
-    ax.step(np.insert(np.exp(hierarchical_one.lna_edges[:-1] + lnaw), 0, np.exp(hierarchical_one.lna_edges[0])), 
+    occ, = ax.step(np.insert(np.exp(hierarchical_one.lna_edges[:-1] + lnaw), 0, np.exp(hierarchical_one.lna_edges[0])), 
             np.insert(a_modes, 0, a_modes[0]), color='black', lw=2, label='Occurrence')
 
+    # Plot just-counting, no-completeness histogram
+    count, = ax.step(np.insert(np.exp(hierarchical_one.lna_edges[:-1] + lnaw), 0, np.exp(hierarchical_one.lna_edges[0])), 
+                      np.insert(simple_counts, 0, simple_counts[0]), lw=2, c='blue', linestyle=':', label='Count')
+    ax2 = ax.twinx()
+    Np = lambda x: x*lnaw
+    ax1lim = ax.get_ylim()
+    ax2.set_ylim([Np(ax1lim[0]), Np(ax1lim[1])])
+    ax2.set_ylabel('$N_P$ / 100 stars')
+    ax2.plot([], [])
+
     for i in np.arange(1000):
-        ax.step(np.insert(np.exp(hierarchical_one.lna_edges[:-1] + lnaw), 0, np.exp(hierarchical_one.lna_edges[0])), 
-                np.insert(a_chains[:, np.random.randint(0, 10000)], 0, a_medians[0]), 
-                color='black', lw=1, alpha=0.01, label='_nolegend_')
-    
-    ax.legend(loc=2) 
+        # ax.step(np.insert(np.exp(hierarchical_one.lna_edges[:-1] + lnaw), 0, np.exp(hierarchical_one.lna_edges[0])), 
+        #         np.insert(a_chains[:, np.random.randint(0, 10000)], 0, a_medians[0]), 
+        #         color='black', lw=1, alpha=0.01, label='_nolegend_')
+        ax.hlines(a_chains[:, np.random.randint(0, 10000)],
+                  np.insert(np.exp(hierarchical_one.lna_edges[:-2] + lnaw), 0, 0.0001),
+                  np.exp(hierarchical_one.lna_edges[:-1] + lnaw),
+                  color='black', lw=1, alpha=0.01, label='_nolegend_')
+
+    lns = [occ, conf, count]
+    labs = [l.get_label() for l in lns]
+    ax.legend(lns, labs, loc=2)
+
+    ax.annotate(r'$\Delta\ln{(S)} = %.2f$' % lnaw, xy=(0.05, 0.65), xycoords='axes fraction', fontsize=12)
 
     fig.savefig(outname, dpi=1000, bbox_inches='tight')
 
@@ -436,11 +465,15 @@ def subjovians(hierarchical_sub, hierarchical_sup, subjupbins, supjupbins,
                outname='plots/hist_super_sub_Jupiters.pdf'):
     chains_sub = pd.read_csv('occur_chains_11x1_sub.csv')
     chains_sup = pd.read_csv('occur_chains_11x1_sup.csv')
+
+    lnaw_sub = subjupbins[0][0][1] - subjupbins[0][0][0]
+    lnaw_sup = supjupbins[0][0][1] - supjupbins[0][0][0]
+
     a_modes_sub = []
     a_159_sub = []
     a_841_sub = []
     for n in np.arange(hierarchical_sub.nbins):
-        chains = np.array([chains_sub['gamma{}'.format(n)]])*hierarchical_sub.bin_areas[0][0]*(100/719)
+        chains = np.array([chains_sub['gamma{}'.format(n)]])*hierarchical_sub.bin_areas[0][0]*(100/719) / lnaw_sub
         hist, bin_edges = np.histogram(chains, bins=40, range=(np.percentile(chains, 2), np.percentile(chains, 95)))
         a_modes_sub.append(bin_edges[np.argmax(hist)])
         a_159_sub.append(np.percentile(chains, 15.9))
@@ -452,7 +485,7 @@ def subjovians(hierarchical_sub, hierarchical_sup, subjupbins, supjupbins,
     a_159_sup = []
     a_841_sup = []
     for n in np.arange(hierarchical_sup.nbins):
-        chains = np.array([chains_sup['gamma{}'.format(n)]])*hierarchical_sup.bin_areas[0][0]*(100/719)
+        chains = np.array([chains_sup['gamma{}'.format(n)]])*hierarchical_sup.bin_areas[0][0]*(100/719) / lnaw_sup
         hist, bin_edges = np.histogram(chains, bins=40, range=(np.percentile(chains, 2), np.percentile(chains, 95)))
         a_modes_sup.append(bin_edges[np.argmax(hist)])
         a_159_sup.append(np.percentile(chains, 15.9))
@@ -468,9 +501,7 @@ def subjovians(hierarchical_sub, hierarchical_sup, subjupbins, supjupbins,
     ax.set_xlabel(r'Semi-major axis (au)')
     ax.set_ylabel('$N_P$ / 100 stars / $\Delta$ln($a$)\n(30 - 6000 $\mathrm{M_{\oplus}}$)')
     ax.set_xlim([np.exp(hierarchical_sup.lna_edges[0]), np.exp(hierarchical_sup.lna_edges[-1])])
-    ax.set_ylim([0, 8.25])
-    lnaw_sub = subjupbins[0][0][1] - subjupbins[0][0][0]
-    lnaw_sup = supjupbins[0][0][1] - supjupbins[0][0][0]
+    ax.set_ylim([0, 13])
     ax.scatter(np.exp(hierarchical_sub.lna_edges[:-1] + 0.5*lnaw_sub), a_modes_sub,
             color='blue', s=30, label='_nolegend_')
     ax.vlines(np.exp(hierarchical_sub.lna_edges[:-1] + 0.5*lnaw_sub), a_159_sub,
@@ -485,4 +516,14 @@ def subjovians(hierarchical_sub, hierarchical_sup, subjupbins, supjupbins,
             np.insert(a_modes_sup, 0, a_modes_sup[0]), color='green', lw=2, linestyle='--', label=r'300 - 6000 M$_{\oplus}$')
     ax.legend(loc=2) 
     # fig.savefig('plots/hist_super_sub_Jupiters.png', dpi=1000, bbox_inches='tight')
+
+    ax2 = ax.twinx()
+    Np = lambda x: x*lnaw_sub
+    ax1lim = ax.get_ylim()
+    ax2.set_ylim([Np(ax1lim[0]), Np(ax1lim[1])])
+    ax2.set_ylabel('$N_P$ / 100 stars')
+    ax2.plot([], [])
+
+    ax.annotate(r'$\Delta\ln{(a)} = %.2f$' % lnaw_sub, xy=(0.05, 0.65), xycoords='axes fraction', fontsize=12)
+
     fig.savefig(outname, bbox_inches='tight')
