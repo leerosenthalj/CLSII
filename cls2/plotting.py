@@ -527,3 +527,17 @@ def subjovians(hierarchical_sub, hierarchical_sup, subjupbins, supjupbins,
     ax.annotate(r'$\Delta\ln{(a)} = %.2f$' % lnaw_sub, xy=(0.05, 0.65), xycoords='axes fraction', fontsize=12)
 
     fig.savefig(outname, bbox_inches='tight')
+
+    outdf = pd.DataFrame([])
+    outdf['centers'] = np.exp(hierarchical_sub.lna_edges[:-1] + 0.5*lnaw_sub)
+    outdf['occ_mode'] = a_modes_sub
+    outdf['occ_159'] = a_159_sub
+    outdf['occ_841'] = a_841_sub
+    outdf.to_csv('legacy_tables/figure5_sub.csv', index=False)
+
+    outdf = pd.DataFrame([])
+    outdf['centers'] = np.exp(hierarchical_sup.lna_edges[:-1] + 0.5*lnaw_sup)
+    outdf['occ_mode'] = a_modes_sup
+    outdf['occ_159'] = a_159_sup
+    outdf['occ_841'] = a_841_sup
+    outdf.to_csv('legacy_tables/figure5_sup.csv', index=False)
