@@ -499,7 +499,7 @@ def subjovians(hierarchical_sub, hierarchical_sup, subjupbins, supjupbins,
     ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
     ax.get_xaxis().set_minor_formatter(matplotlib.ticker.NullFormatter())
     ax.set_xlabel(r'Semi-major axis (au)')
-    ax.set_ylabel('$N_P$ / 100 stars / $\Delta$ln($a$)\n(30 - 6000 $\mathrm{M_{\oplus}}$)')
+    ax.set_ylabel('$N_P$ / 100 stars / $\Delta$ln($a$)')
     ax.set_xlim([np.exp(hierarchical_sup.lna_edges[0]), np.exp(hierarchical_sup.lna_edges[-1])])
     ax.set_ylim([0, 13])
     ax.scatter(np.exp(hierarchical_sub.lna_edges[:-1] + 0.5*lnaw_sub), a_modes_sub,
